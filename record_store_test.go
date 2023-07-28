@@ -85,3 +85,14 @@ func TestRecorder_RecordsByLevel(t *testing.T) {
 		assert.Equal(t, zap.InfoLevel, record.Entry.Level, "record should have correct level")
 	}
 }
+
+func TestRecordStore_DumpToLogger(t *testing.T) {
+	logger, recorder := NewRecorder(nil)
+	logger.Info("info")
+	logger.Error("error")
+	logger.Info("info")
+
+	dumpLogger, dumpRecorder := NewRecorder(nil)
+	recorder.DumpToLogger(dumpLogger)
+	assert.Len(t, dumpRecorder.Records(), 3)
+}

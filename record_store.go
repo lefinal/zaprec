@@ -1,6 +1,7 @@
 package zaprec
 
 import (
+	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"sync"
 )
@@ -51,4 +52,20 @@ func (rs *RecordStore) RecordsByLevel(level zapcore.Level) []Record {
 		}
 	}
 	return found
+}
+
+// Dump all contents to stdout. Useful for test logs if tests failed.
+func (rs *RecordStore) Dump() {
+	loggerOptions := zap.NewDevelopmentConfig()
+	loggerOptions.Level = zap.NewAtomicLevelAt(zapcore.DebugLevel)
+	loggerOptions.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	logger, _ := loggerOptions.Build(zap.AddStacktrace(zap.FatalLevel), zap.WithCaller(false))
+	rs.DumpToLogger(logger)
+}
+
+// DumpToLogger dumps all records to the given zap.Logger.
+func (rs *RecordStore) DumpToLogger(logger *zap.Logger) {
+	for _, record := range rs.Records() {
+		logger.Named(record.Entry.LoggerName).Log(record.Entry.Level, record.Entry.Message, record.Fields...)
+	}
 }
